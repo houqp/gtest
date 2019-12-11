@@ -224,6 +224,77 @@ func (s *GTestTests) SubTestSetupAndTearDown(t *testing.T) {
 	assert.True(t, s.Initialized)
 }
 
+type InvalidFixtureMissingConstruct struct{}
+
+type InvalidFixtureConstructInput struct{}
+
+func (InvalidFixtureConstructInput) Construct() {}
+
+type InvalidFixtureConstructInput1 struct{}
+
+func (InvalidFixtureConstructInput1) Construct(t *testing.T, fixtures string) {}
+
+type InvalidFixtureConstructInput2 struct{}
+
+func (InvalidFixtureConstructInput2) Construct(t *testing.T, fixtures string) (string, interface{}) {
+	return "", nil
+}
+
+type InvalidFixtureConstructInput3 struct{}
+
+func (InvalidFixtureConstructInput3) Construct(t int, fixtures struct{}) (string, interface{}) {
+	return "", nil
+}
+
+type InvalidFixtureMissingDestruct struct{}
+
+func (InvalidFixtureMissingDestruct) Construct(t *testing.T, fixtures struct{}) (string, interface{}) {
+	return "", nil
+}
+
+type InvalidFixtureDestructInput struct{}
+
+func (InvalidFixtureDestructInput) Construct(t *testing.T, fixtures struct{}) (string, interface{}) {
+	return "", nil
+}
+func (InvalidFixtureDestructInput) Destruct(t string) {}
+
+type InvalidFixtureDestructOutput1 struct{}
+
+func (InvalidFixtureDestructOutput1) Construct(t *testing.T, fixtures struct{}) (string, interface{}) {
+	return "", nil
+}
+func (InvalidFixtureDestructOutput1) Destruct(t string, ctx interface{}) {}
+
+type InvalidFixtureDestructOutput2 struct{}
+
+func (InvalidFixtureDestructOutput2) Construct(t *testing.T, fixtures struct{}) (string, interface{}) {
+	return "", nil
+}
+func (InvalidFixtureDestructOutput2) Destruct(t *testing.T, ctx struct{}) {}
+
+func (s *GTestTests) SubTestInvalidFixtureRegistration(t *testing.T) {
+	for _, f := range []interface{}{
+		InvalidFixtureMissingConstruct{},
+		InvalidFixtureConstructInput{},
+		InvalidFixtureConstructInput1{},
+		InvalidFixtureConstructInput2{},
+		InvalidFixtureConstructInput3{},
+		InvalidFixtureMissingDestruct{},
+		InvalidFixtureDestructInput{},
+		InvalidFixtureDestructOutput1{},
+		InvalidFixtureDestructOutput2{},
+	} {
+		err := gtest.RegisterFixture("Foo", f, gtest.ScopeCall)
+		assert.Error(t, err)
+	}
+}
+
+func (s *GTestTests) SubTestFixtureDuplicatedReg(t *testing.T) {
+	err := gtest.RegisterFixture("UserId", &UserIdFixture{}, gtest.ScopeSubTest)
+	assert.Error(t, err)
+}
+
 func TestGTest(t *testing.T) {
 	testGroup := &GTestTests{}
 	assert.False(t, testGroup.Initialized)
