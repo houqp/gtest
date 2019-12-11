@@ -1,4 +1,5 @@
-// GTest provides the following functionalities to help reduce boilerplate in test code:
+// Package gTest provides the following functionalities to help reduce
+// boilerplate in test code:
 //
 // - Test grouping
 //
