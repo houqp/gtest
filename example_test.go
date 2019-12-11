@@ -99,6 +99,3 @@ func (s *SampleTests) SubTestMultipleFixtures(t *testing.T, fixtures struct {
 func TestSampleTests(t *testing.T) {
 	gtest.RunSubTests(t, &SampleTests{})
 }
-
-func Example() {
-}
