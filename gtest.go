@@ -24,7 +24,8 @@ const (
 	testMethodPrefix = "SubTest"
 )
 
-// Subtests are grouped in struct that confirms to GTest interface
+// Subtests are grouped in struct that implements GTest interface.
+// Each test should be implemented as a struct method with `SubTest` as prefix.
 type GTest interface {
 	// Setup is called before any subtest runs in a test group.
 	Setup(t *testing.T)

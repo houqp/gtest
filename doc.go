@@ -1,6 +1,18 @@
-// GTest provides two main functionalities to reduce boilerplate in tests.
+// GTest provides the following functionalities to help reduce boilerplate in test code:
 //
-// Example usage of test grouping:
+// - Test grouping
+//
+// - Setup, Teardown hooks for test groups
+//
+// - BeforeEach, AfterEach hooks for tests
+//
+// - Fixture injection
+//
+// Tests are grouped using struct methods. Each test in a test group needs to
+// be defined as a struct method with `SubTest` prefix. Test group struct needs
+// to implement GTest interface.
+//
+// Example of test grouping:
 //
 //    import (
 //      "strings"
@@ -31,12 +43,14 @@
 //      gtest.RunSubTests(t, &SampleTests{})
 //    }
 //
-// Any struct with Construct and Destruct method defined can be registered as
-// fixture. Fixtures are referenced using fixture struct field tags. Example
-// usage of fixture injection:
+// Any struct with Construct and Destruct method defined can be registered as a
+// fixture. Fixtures are referenced using fixture struct field tags.
+//
+// Example of fixture injection:
 //
 //    import (
-//      "strings"
+//      "io/ioutil"
+//      "os"
 //      "testing"
 //      "github.com/houqp/gtest"
 //    )
