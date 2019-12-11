@@ -4,7 +4,7 @@ GTest
 [![Documentation](https://godoc.org/github.com/houqp/gtest?status.svg)](https://godoc.org/github.com/houqp/gtest)
 [![goreportcard](https://goreportcard.com/badge/github.com/houqp/gtest)](https://goreportcard.com/report/github.com/houqp/gtest)
 
-Light weight Golang test framework inspired by pytest.
+Lightweight Golang test framework inspired by pytest.
 
 GTest provides the following functionalities to help reduce boilerplate in test code:
 
