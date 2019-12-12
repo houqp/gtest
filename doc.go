@@ -1,4 +1,4 @@
-// Package gTest provides the following functionalities to help reduce
+// Package gtest provides the following functionalities to help reduce
 // boilerplate in test code:
 //
 // - Test grouping
@@ -10,8 +10,9 @@
 // - Fixture injection
 //
 // Tests are grouped using struct methods. Each test in a test group needs to
-// be defined as a struct method with `SubTest` prefix. Test group struct needs
-// to implement GTest interface.
+// be defined as a struct method with `SubTest` prefix. To run a group of
+// tests, have the test group struct implement `GTest` interface, then passe it
+// to `RunSubTests` call.
 //
 // Example of test grouping:
 //
@@ -23,8 +24,10 @@
 //
 //    type SampleTests struct{}
 //
+//    // Setup and Teardown are invoked per test group run
 //    func (s *SampleTests) Setup(t *testing.T)      {}
 //    func (s *SampleTests) Teardown(t *testing.T)   {}
+//    // BeforeEach and AfterEach are invoked per test run
 //    func (s *SampleTests) BeforeEach(t *testing.T) {}
 //    func (s *SampleTests) AfterEach(t *testing.T)  {}
 //
@@ -45,7 +48,8 @@
 //    }
 //
 // Any struct with Construct and Destruct method defined can be registered as a
-// fixture. Fixtures are referenced using fixture struct field tags.
+// fixture. After a fixture is registered, it can be referenced using fixture
+// struct field tags.
 //
 // Example of fixture injection:
 //
