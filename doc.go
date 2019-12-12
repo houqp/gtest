@@ -68,8 +68,9 @@
 //      return dir, dir
 //    }
 //
-//    func (s WorkDirFixture) Destruct(t *testing.T, ctx interface{}) {
-//      dir := ctx.(string)
+//    // type for second input parameter of Destruct needs to match second return value of
+//    // Construct method
+//    func (s WorkDirFixture) Destruct(t *testing.T, dir string) {
 //      os.RemoveAll(dir)
 //    }
 //
