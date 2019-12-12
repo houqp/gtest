@@ -53,20 +53,28 @@ func validateFixtureConstructMethod(fType reflect.Type) error {
 	}
 
 	if constructMethod.Type.NumIn() != 3 {
-		return fmt.Errorf("%s's Construct method needs to take exactly 2 input parameter as fixtures struct, got: %d.", fType.String(), constructMethod.Type.NumIn()-1)
+		return fmt.Errorf(
+			"%s's Construct method needs to take exactly 2 input parameter as fixtures struct, got: %d.",
+			fType.String(), constructMethod.Type.NumIn()-1)
 	}
 	if constructMethod.Type.NumOut() != 2 {
-		return fmt.Errorf("%s's Construct method needs to return exactly 2 output parameters as as value and destruct context, got: %d.", fType.String(), constructMethod.Type.NumOut())
+		return fmt.Errorf(
+			"%s's Construct method needs to return exactly 2 output parameters as as value and destruct context, got: %d.",
+			fType.String(), constructMethod.Type.NumOut())
 	}
 
 	arg1 := constructMethod.Type.In(1)
 	if arg1.String() != "*testing.T" {
-		return fmt.Errorf("%s's Construct method needs to take *testing.T as first argument, got: %s", fType.String(), arg1.String())
+		return fmt.Errorf(
+			"%s's Construct method needs to take *testing.T as first argument, got: %s",
+			fType.String(), arg1.String())
 	}
 
 	arg2 := constructMethod.Type.In(2)
 	if arg2.Kind() != reflect.Struct {
-		return fmt.Errorf("%s's Construct method needs to take a struct as second argument", fType.String())
+		return fmt.Errorf(
+			"%s's Construct method needs to take a struct as second argument",
+			fType.String())
 	}
 
 	return nil
@@ -78,17 +86,30 @@ func validateFixtureDestructMethod(fType reflect.Type) error {
 		return fmt.Errorf("%s missing required Destruct method.", fType.String())
 	}
 	if destructMethod.Type.NumIn() != 3 {
-		return fmt.Errorf("%s's Destruct method needs to take exactly 2 input parameter as destruct context, got %d.", fType.String(), destructMethod.Type.NumIn()-1)
+		return fmt.Errorf(
+			"%s's Destruct method needs to take exactly 2 input parameter as destruct context, got %d.",
+			fType.String(), destructMethod.Type.NumIn()-1)
 	}
 
 	arg1 := destructMethod.Type.In(1)
 	if arg1.String() != "*testing.T" {
-		return fmt.Errorf("%s's Destruct method needs to take *testing.T as first argument, got: %s", fType.String(), arg1.String())
+		return fmt.Errorf(
+			"%s's Destruct method needs to take *testing.T as first argument, got: %s",
+			fType.String(), arg1.String())
 	}
 
+	// make sure context type used by Destruct matches with the one returned by Construct
+	constructMethod, ok := fType.MethodByName("Construct")
+	if !ok {
+		return fmt.Errorf("%s missing required Construct method.", fType.String())
+	}
+	constructOutCtx := constructMethod.Type.Out(1)
+
 	arg2 := destructMethod.Type.In(2)
-	if arg2.String() != "interface {}" {
-		return fmt.Errorf("%s's Destruct method needs to take interface {} as second argument, got: %s", fType.String(), arg2.String())
+	if arg2.String() != constructOutCtx.String() {
+		return fmt.Errorf(
+			"%s's Destruct method needs to take %s as second argument, got: %s",
+			fType.String(), constructOutCtx.String(), arg2.String())
 	}
 
 	return nil
@@ -253,33 +274,33 @@ func RunSubTests(t *testing.T, gt GTest) {
 		// doesn't count struct as input parameter.
 		methodParamCount := method.Type.NumIn() - 1
 
-		callParams := make([]reflect.Value, methodParamCount)
-		cleanUpCbs := []func(){}
-		if methodParamCount < 1 {
-			t.Fatalf("Method %v must have *testing.T as first parameter, got nothing.", methodName)
-		}
-
-		// first parameter should be testing.T
-		argType := method.Type.In(1).String()
-		if argType != "*testing.T" {
-			t.Fatalf(
-				"Method %v must have *testing.T as first parameter, got: %s",
-				methodName, argType)
-		}
-
-		// second optional parameter should be fixtures struct
-		if methodParamCount == 2 {
-			fixturesType := method.Type.In(2)
-			callParams[1] = resolver.resolve(t, fixturesType, methodName, &cleanUpCbs)
-		} else if methodParamCount > 2 {
-			t.Fatalf(
-				"Method %s cannot take more than 2 parameters, got %d.",
-				methodName, methodParamCount)
-		}
-
-		tfunc := xv.MethodByName(methodName)
-
 		t.Run(strings.TrimPrefix(methodName, testMethodPrefix), func(t *testing.T) {
+			callParams := make([]reflect.Value, methodParamCount)
+			cleanUpCbs := []func(){}
+			if methodParamCount < 1 {
+				t.Fatalf("Method %v must have *testing.T as first parameter, got nothing.", methodName)
+			}
+
+			// first parameter should be testing.T
+			argType := method.Type.In(1).String()
+			if argType != "*testing.T" {
+				t.Fatalf(
+					"Method %v must have *testing.T as first parameter, got: %s",
+					methodName, argType)
+			}
+
+			// second optional parameter should be fixtures struct
+			if methodParamCount == 2 {
+				fixturesType := method.Type.In(2)
+				callParams[1] = resolver.resolve(t, fixturesType, methodName, &cleanUpCbs)
+			} else if methodParamCount > 2 {
+				t.Fatalf(
+					"Method %s cannot take more than 2 parameters, got %d.",
+					methodName, methodParamCount)
+			}
+
+			tfunc := xv.MethodByName(methodName)
+
 			gt.BeforeEach(t)
 
 			callParams[0] = reflect.ValueOf(t)

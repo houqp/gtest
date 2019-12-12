@@ -24,8 +24,7 @@ func (s WorkDirFixture) Construct(t *testing.T, fixtures struct{}) (string, stri
 	return dir, dir
 }
 
-func (s WorkDirFixture) Destruct(t *testing.T, ctx interface{}) {
-	dir := ctx.(string)
+func (s WorkDirFixture) Destruct(t *testing.T, dir string) {
 	os.RemoveAll(dir)
 }
 

@@ -92,8 +92,7 @@ func (s TmpDirFixture) Construct(t *testing.T, fixtures struct{}) (string, strin
 	return dir, dir
 }
 
-func (s TmpDirFixture) Destruct(t *testing.T, ctx interface{}) {
-	dir := ctx.(string)
+func (s TmpDirFixture) Destruct(t *testing.T, dir string) {
 	os.RemoveAll(dir)
 }
 
@@ -123,10 +122,9 @@ func (s MockApiServerFixture) Construct(t *testing.T, fixtures struct{}) (*httpt
 	}
 }
 
-func (s MockApiServerFixture) Destruct(t *testing.T, ctx interface{}) {
-	c := ctx.(ApiServerFixtureCtx)
-	c.Server.Close()
-	os.Remove(c.DataFile.Name())
+func (s MockApiServerFixture) Destruct(t *testing.T, ctx ApiServerFixtureCtx) {
+	ctx.Server.Close()
+	os.Remove(ctx.DataFile.Name())
 }
 
 // register all fixtures
@@ -215,7 +213,6 @@ func (GTestTests) SubTestFixtureDestruct(t *testing.T, fixtures struct {
 	res.Body.Close()
 
 	assert.Equal(t, "Hello, GTest server\n", string(greeting))
-
 	// goleak will report error is ApiServer fixture is not destructed properly
 }
 
@@ -274,19 +271,24 @@ func (InvalidFixtureDestructOutput2) Construct(t *testing.T, fixtures struct{}) 
 func (InvalidFixtureDestructOutput2) Destruct(t *testing.T, ctx struct{}) {}
 
 func (s *GTestTests) SubTestInvalidFixtureRegistration(t *testing.T) {
-	for _, f := range []interface{}{
-		InvalidFixtureMissingConstruct{},
-		InvalidFixtureConstructInput{},
-		InvalidFixtureConstructInput1{},
-		InvalidFixtureConstructInput2{},
-		InvalidFixtureConstructInput3{},
-		InvalidFixtureMissingDestruct{},
-		InvalidFixtureDestructInput{},
-		InvalidFixtureDestructOutput1{},
-		InvalidFixtureDestructOutput2{},
+	for _, entry := range []struct {
+		Name string
+		F    interface{}
+	}{
+		{"MissingConstruct", InvalidFixtureMissingConstruct{}},
+		{"ConstructInput", InvalidFixtureConstructInput{}},
+		{"ConstructInput1", InvalidFixtureConstructInput1{}},
+		{"ConstructInput2", InvalidFixtureConstructInput2{}},
+		{"ConstructInput3", InvalidFixtureConstructInput3{}},
+		{"MissingDestruct", InvalidFixtureMissingDestruct{}},
+		{"DestructInput", InvalidFixtureDestructInput{}},
+		{"DestructOutput1", InvalidFixtureDestructOutput1{}},
+		{"DestructOutput2", InvalidFixtureDestructOutput2{}},
 	} {
-		err := gtest.RegisterFixture("Foo", f, gtest.ScopeCall)
-		assert.Error(t, err)
+		t.Run(entry.Name, func(t *testing.T) {
+			err := gtest.RegisterFixture("Foo", entry.F, gtest.ScopeCall)
+			assert.Error(t, err)
+		})
 	}
 }
 
